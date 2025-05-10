@@ -4,7 +4,7 @@ df = pd.read_csv("dataset.csv", index_col=0)
 
 genres = [
     'classical', 'jazz', 'country', 'blues', 'funk', 'heavy-metal', 'rock',
-    'pop', 'indie', 'kids', 'opera', 'electronic']
+    'pop', 'kids', 'opera', 'electronic']
 
 df = df[df['track_genre'].isin(genres)]
 
