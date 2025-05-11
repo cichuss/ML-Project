@@ -1,3 +1,4 @@
+import random
 import warnings
 from collections import defaultdict
 
@@ -8,6 +9,7 @@ import pandas as pd
 from sklearn.base import clone, BaseEstimator
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.exceptions import ConvergenceWarning
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
@@ -16,6 +18,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 warnings.filterwarnings('ignore', category=ConvergenceWarning)
 warnings.filterwarnings('ignore', category=UserWarning, message="Precision is ill-defined")
 matplotlib.use('TkAgg')
+
 
 def load_and_preprocess_data(csv_path):
     df = pd.read_csv(csv_path)
@@ -60,7 +63,6 @@ def run_experiment(csv_path, n_splits=10):
 
     results = {'OvA': defaultdict(list), 'OvO': defaultdict(list), 'NDs': defaultdict(list)}
     base_clf = RandomForestClassifier(n_estimators=100, random_state=42)
-    all_feature_importances = []
 
     for fold_num, (train_index, test_index) in enumerate(skf.split(X_full, y_full), start=1):
         print(f"\n--- Fałda Walidacji Krzyżowej: {fold_num}/{n_splits} ---")
@@ -94,10 +96,9 @@ def run_experiment(csv_path, n_splits=10):
         y_train_labels = label_encoder.inverse_transform(y_train)
 
         hierarchy = create_music_genre_hierarchy()
-        nd_classifiers, feature_importances = train_nested_dichotomies_classifier(
+        nd_classifiers = train_nested_dichotomies_classifier(
             X_train_scaled.values, y_train_labels, hierarchy, base_clf
         )
-        all_feature_importances.append(feature_importances)
         y_pred_nds = [predict_with_hierarchy(nd_classifiers, x, hierarchy) for x in X_test_scaled.values]
         y_pred_nds_encoded = label_encoder.transform(y_pred_nds)
 
@@ -107,9 +108,6 @@ def run_experiment(csv_path, n_splits=10):
                 y_test=y_test).items():
             results['NDs'][metric_name].append(value)
             print(f"NDs Wyniki: {value}")
-    # feature_names = numerical_features
-    # for feature_importances in all_feature_importances:
-    #     plot_feature_importances(feature_importances, feature_names)
 
     print("\n\n--- Średnie Wyniki po Walidacji Krzyżowej ---")
     for method_name, metrics_dict in results.items():
@@ -121,62 +119,63 @@ def run_experiment(csv_path, n_splits=10):
 
 
 # def create_music_genre_hierarchy():
-#     return {
-#         'root': {
-#             'left': ['classical', 'opera'],
-#             'right': ['heavy-metal', 'rock', 'electronic', 'kids', 'pop', 'indie', 'jazz', 'blues', 'funk', 'country']
-#         },
-#         ('heavy-metal', 'rock', 'electronic', 'kids', 'pop', 'indie', 'jazz', 'blues', 'funk', 'country'): {
-#             'left': ['jazz', 'blues', 'funk', 'country'],
-#             'right': ['heavy-metal', 'rock', 'electronic', 'kids', 'pop', 'indie']
-#         },
-#         ('classical', 'opera'): {
-#             'left': ['classical'],
-#             'right': ['opera']
-#         },
-#         ('jazz', 'blues', 'funk', 'country'): {
-#             'left': ['jazz', 'blues', 'funk'],
-#             'right': ['country']
-#         },
-#         ('jazz', 'blues', 'funk'): {
-#             'left': ['jazz'],
-#             'right': ['blues', 'funk']
-#         },
-#         ('blues', 'funk'): {
-#             'left': ['blues'],
-#             'right': ['funk']
-#         },
-#         ('heavy-metal', 'rock', 'electronic', 'kids', 'pop', 'indie'): {
-#             'left': ['heavy-metal', 'rock', 'electronic'],
-#             'right': ['kids', 'pop', 'indie']
-#         },
-#         ('heavy-metal', 'rock', 'electronic'): {
-#             'left': ['heavy-metal', 'rock'],
-#             'right': ['electronic']
-#         },
-#         ('heavy-metal', 'rock'): {
-#             'left': ['heavy-metal'],
-#             'right': ['rock']
-#         },
-#         ('kids', 'pop', 'indie'): {
-#             'left': ['kids'],
-#             'right': ['pop', 'indie']
-#         },
-#         ('pop', 'indie'): {
-#             'left': ['pop'],
-#             'right': ['indie']
-#         }
-#     }
+    # return {
+    #     'root': {
+    #         'left': ['classical', 'opera'],
+    #         'right': ['heavy-metal', 'rock', 'electronic', 'kids', 'pop', 'jazz', 'blues', 'funk', 'country']
+    #     },
+    #     ('heavy-metal', 'rock', 'electronic', 'kids', 'pop', 'jazz', 'blues', 'funk', 'country'): {
+    #         'left': ['jazz', 'blues', 'funk', 'country', 'heavy-metal', 'rock'],
+    #         'right': ['electronic', 'kids', 'pop']
+    #     },
+    #     ('classical', 'opera'): {
+    #         'left': ['classical'],
+    #         'right': ['opera']
+    #     },
+    #     ('jazz', 'blues', 'funk', 'country', 'heavy-metal', 'rock'): {
+    #         'left': ['jazz', 'funk'],
+    #         'right': ['blues', 'country', 'heavy-metal', 'rock']
+    #     },
+    #     ('jazz', 'funk'): {
+    #         'left': ['jazz'],
+    #         'right': ['funk']
+    #     },
+    #     ('blues', 'country', 'heavy-metal', 'rock'): {
+    #         'left': ['heavy-metal', 'rock'],
+    #         'right': ['blues', 'country']
+    #     },
+    #     ('blues', 'country'): {
+    #         'left': ['blues'],
+    #         'right': ['country']
+    #     },
+    #     ('heavy-metal', 'rock'): {
+    #         'left': ['heavy-metal'],
+    #         'right': ['rock']
+    #     },
+    #     ('electronic', 'kids', 'pop'): {
+    #         'left': ['kids', 'pop'],
+    #         'right': ['electronic']
+    #     },
+    #     ('kids', 'pop'): {
+    #         'left': ['kids'],
+    #         'right': ['pop']
+    #     }
+    # }
+
 
 def create_music_genre_hierarchy():
     return {
         'root': {
-            'left': ['classical', 'opera', 'heavy-metal', 'rock', 'electronic'],
-            'right': ['kids', 'pop', 'jazz', 'blues', 'funk', 'country']
+            'left': ['classical', 'opera'],
+            'right': ['heavy-metal', 'rock', 'electronic', 'kids', 'pop', 'jazz', 'blues', 'funk', 'country']
         },
-        ('kids', 'pop', 'jazz', 'blues', 'funk', 'country'): {
+        ('heavy-metal', 'rock', 'electronic', 'kids', 'pop', 'jazz', 'blues', 'funk', 'country'): {
             'left': ['jazz', 'blues', 'funk', 'country'],
-            'right': ['kids', 'pop']
+            'right': ['heavy-metal', 'rock', 'electronic', 'kids', 'pop']
+        },
+        ('classical', 'opera'): {
+            'left': ['classical'],
+            'right': ['opera']
         },
         ('jazz', 'blues', 'funk', 'country'): {
             'left': ['jazz', 'blues', 'funk'],
@@ -190,13 +189,9 @@ def create_music_genre_hierarchy():
             'left': ['blues'],
             'right': ['funk']
         },
-        ('kids', 'pop'): {
-            'left': ['kids'],
-            'right': ['pop']
-        },
-        ('classical', 'opera', 'heavy-metal', 'rock', 'electronic'): {
-            'left': ['classical', 'opera'],
-            'right': ['heavy-metal', 'rock', 'electronic']
+        ('heavy-metal', 'rock', 'electronic', 'kids', 'pop'): {
+            'left': ['heavy-metal', 'rock', 'electronic'],
+            'right': ['kids', 'pop']
         },
         ('heavy-metal', 'rock', 'electronic'): {
             'left': ['heavy-metal', 'rock'],
@@ -206,11 +201,55 @@ def create_music_genre_hierarchy():
             'left': ['heavy-metal'],
             'right': ['rock']
         },
-        ('classical', 'opera'): {
-            'left': ['classical'],
-            'right': ['opera']
+        ('kids', 'pop'): {
+            'left': ['kids'],
+            'right': ['pop']
         }
     }
+
+# def create_music_genre_hierarchy():
+#     return {
+#         'root': {
+#             'left': ['classical', 'opera', 'heavy-metal', 'rock', 'electronic'],
+#             'right': ['kids', 'pop', 'jazz', 'blues', 'funk', 'country']
+#         },
+#         ('kids', 'pop', 'jazz', 'blues', 'funk', 'country'): {
+#             'left': ['jazz', 'blues', 'funk', 'country'],
+#             'right': ['kids', 'pop']
+#         },
+#         ('jazz', 'blues', 'funk', 'country'): {
+#             'left': ['jazz', 'blues', 'funk'],
+#             'right': ['country']
+#         },
+#         ('jazz', 'blues', 'funk'): {
+#             'left': ['jazz'],
+#             'right': ['blues', 'funk']
+#         },
+#         ('blues', 'funk'): {
+#             'left': ['blues'],
+#             'right': ['funk']
+#         },
+#         ('kids', 'pop'): {
+#             'left': ['kids'],
+#             'right': ['pop']
+#         },
+#         ('classical', 'opera', 'heavy-metal', 'rock', 'electronic'): {
+#             'left': ['classical', 'opera'],
+#             'right': ['heavy-metal', 'rock', 'electronic']
+#         },
+#         ('heavy-metal', 'rock', 'electronic'): {
+#             'left': ['heavy-metal', 'rock'],
+#             'right': ['electronic']
+#         },
+#         ('heavy-metal', 'rock'): {
+#             'left': ['heavy-metal'],
+#             'right': ['rock']
+#         },
+#         ('classical', 'opera'): {
+#             'left': ['classical'],
+#             'right': ['opera']
+#         }
+#     }
 # def create_music_genre_hierarchy():
 #     return {
 #         'root': {
@@ -261,7 +300,7 @@ def create_music_genre_hierarchy():
 
 def train_nested_dichotomies_classifier(X, y, hierarchy, base_clf):
     classifiers = {}
-    feature_importances = defaultdict(list)
+
     def recurse(node_key, indices):
         node = hierarchy[node_key]
         left_genres, right_genres = node['left'], node['right']
@@ -277,15 +316,13 @@ def train_nested_dichotomies_classifier(X, y, hierarchy, base_clf):
         clf.fit(X_node, y_binary)
         classifiers[node_label] = clf
 
-        # feature_importances[node_label] = clf.coef_[0]
-
         if len(left_genres) > 1:
             recurse(tuple(left_genres), indices[mask][y_binary == 1])
         if len(right_genres) > 1:
             recurse(tuple(right_genres), indices[mask][y_binary == 0])
 
     recurse('root', np.arange(len(y)))
-    return classifiers, feature_importances
+    return classifiers
 
 
 def predict_with_hierarchy(classifiers, x, hierarchy, current_node='root'):
@@ -297,6 +334,7 @@ def predict_with_hierarchy(classifiers, x, hierarchy, current_node='root'):
     next_branch = left if prediction == 1 else right
     return next_branch[0] if len(next_branch) == 1 else predict_with_hierarchy(classifiers, x, hierarchy,
                                                                                tuple(next_branch))
+
 
 def plot_feature_importances(feature_importances, feature_names):
     for node_label, feature_weights in feature_importances.items():
@@ -311,6 +349,7 @@ def plot_feature_importances(feature_importances, feature_names):
         plt.ylabel('Cecha')
         plt.show()
 
+
 if __name__ == '__main__':
     csv_file_path = 'dataset_after_preprocessing.csv'
     results, label_encoder, y_full = run_experiment(csv_file_path, n_splits=10)
@@ -318,8 +357,6 @@ if __name__ == '__main__':
     # print("\nLabel Encoder Classes (Gatunki):")
     # for i, genre_name in enumerate(label_encoder.classes_):
     #     print(f"{i}: {genre_name}")
-
-
 
     # matplotlib.use('TkAgg')
     #
