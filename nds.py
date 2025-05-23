@@ -1,6 +1,6 @@
+import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
-from sympy.physics.control.control_plots import matplotlib
 
 from music_genre_hierarchy import *
 from sklearn.base import clone, BaseEstimator
