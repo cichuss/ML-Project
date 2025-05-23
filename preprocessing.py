@@ -1,4 +1,6 @@
+import numpy as np
 import pandas as pd
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 df = pd.read_csv("dataset.csv", index_col=0)
 
@@ -34,3 +36,37 @@ if duplicates.empty:
 else:
     print(f"Found {len(duplicates)} duplicates track_id:")
     print(duplicates.head(100))
+
+
+
+def load_and_preprocess_data(csv_path):
+    df = pd.read_csv(csv_path)
+    features = ['explicit', 'danceability', 'energy', 'key', 'loudness', 'mode',
+                'speechiness', 'acousticness', 'instrumentalness',
+                'liveness', 'valence', 'tempo', 'track_genre']
+
+    df = df[features]
+    df.dropna(inplace=True)
+
+    X = df.drop(columns=['track_genre'])
+    y_raw = df['track_genre']
+
+    label_encoder = LabelEncoder()
+    y = label_encoder.fit_transform(y_raw)
+    numerical_features = X.select_dtypes(include=np.number).columns.tolist()
+
+    return X, y, numerical_features, label_encoder
+
+
+def split_and_scale_data(X, y, train_index, test_index, numerical_features):
+    X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    y_train, y_test = y[train_index], y[test_index]
+
+    scaler = StandardScaler()
+    X_train_scaled = X_train.copy()
+    X_test_scaled = X_test.copy()
+    X_train_scaled[numerical_features] = scaler.fit_transform(X_train[numerical_features])
+    X_test_scaled[numerical_features] = scaler.transform(X_test[numerical_features])
+
+    return X_train_scaled, X_test_scaled, y_train, y_test
+
