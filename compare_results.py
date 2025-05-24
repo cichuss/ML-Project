@@ -8,41 +8,6 @@ import seaborn as sns
 from scipy.stats import friedmanchisquare, wilcoxon
 
 
-def perform_anova(all_results):
-    import pandas as pd
-    import scipy.stats as stats
-
-    # Flatten results into a DataFrame
-    data = []
-    for clf_name, methods in all_results.items():
-        for method, metrics in methods.items():
-            for metric, scores in metrics.items():
-                for score in scores:
-                    data.append({
-                        'Classifier': clf_name,
-                        'Method': method,
-                        'Metric': metric,
-                        'Score': score
-                    })
-
-    df = pd.DataFrame(data)
-
-    print("\n### ANOVA Results Summary ###")
-    print("Classifier             | F-statistic |  p-value")
-    print("---------------------------------------------")
-
-    for clf_name in df['Classifier'].unique():
-        for metric in ['accuracy', 'precision', 'recall', 'f1_score']:
-            subset = df[(df['Classifier'] == clf_name) & (df['Metric'] == metric)]
-            grouped = [group['Score'].values for _, group in subset.groupby('Method')]
-
-            if len(grouped) > 1 and all(len(g) > 1 for g in grouped):
-                f_stat, p_val = stats.f_oneway(*grouped)
-                print(f"{clf_name:24} | {f_stat:11.4f} | {p_val:8.4f}")
-            else:
-                print(f"{clf_name:24} |        nan |      nan")
-
-
 def plot_accuracy_distributions(all_results, filename="accuracy_distributions.png"):
     data = []
     for clf_name, methods in all_results.items():
