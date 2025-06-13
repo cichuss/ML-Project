@@ -1,30 +1,27 @@
-import random
 import warnings
 from collections import defaultdict
 
 import matplotlib
 import numpy as np
-import pandas as pd
-from sklearn.base import clone, BaseEstimator
+from sklearn.base import BaseEstimator
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold
 from sklearn.svm import SVC
 
+from compare_results import plot_accuracy_distributions, perform_analysis
 from music_genre_hierarchy import create_music_genre_hierarchy
 from nds import train_nested_dichotomies_classifier, predict_with_hierarchy
-from preprocessing import load_and_preprocess_data, split_and_scale_data
 from ova_ovo import evaluate_classifier, OvOOvaClassifiers
-from compare_results import perform_anova, plot_accuracy_distributions, perform_analysis
+from preprocessing import load_and_preprocess_data, split_and_scale_data
+from random_NDs import create_random_nd_hierarchy
 
 warnings.filterwarnings('ignore', category=ConvergenceWarning)
 warnings.filterwarnings('ignore', category=UserWarning, message="Precision is ill-defined")
 warnings.filterwarnings('ignore', category=RuntimeWarning)
 
 matplotlib.use('TkAgg')
-
-
 
 
 class DummyClassifierWrapper(BaseEstimator):
@@ -39,17 +36,21 @@ def run_experiment(csv_path, n_splits=5):
     X_full, y_full, numerical_features, label_encoder = load_and_preprocess_data(csv_path)
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 
-    results = {'OvA': defaultdict(list), 'OvO': defaultdict(list), 'NDs': defaultdict(list)}
-    classifiers = [RandomForestClassifier(n_estimators=100, random_state=42),SVC(kernel='rbf', probability=True, random_state=42),LogisticRegression(max_iter=1000, random_state=42)]
+    results = {'OvA': defaultdict(list), 'OvO': defaultdict(list), 'NDs': defaultdict(list),
+               'RandomNDs': defaultdict(list)}
+    classifiers = [RandomForestClassifier(n_estimators=100, random_state=42),
+                   SVC(kernel='rbf', probability=True, random_state=42),
+                   LogisticRegression(max_iter=1000, random_state=42)]
     clf_names = ["Random Forest", "SVC", "Logistic Regression"]
     all_results = {}
 
-    for base_clf, clf_name in zip(classifiers,clf_names):
+    for base_clf, clf_name in zip(classifiers, clf_names):
         results = {'OvA': defaultdict(list), 'OvO': defaultdict(list), 'NDs': defaultdict(list)}
         for fold_num, (train_index, test_index) in enumerate(skf.split(X_full, y_full), start=1):
             print(f"--- Fałda Walidacji Krzyżowej: {fold_num}/{n_splits} ---")
 
-            X_train_scaled, X_test_scaled, y_train, y_test = split_and_scale_data(X_full, y_full, train_index, test_index,numerical_features)
+            X_train_scaled, X_test_scaled, y_train, y_test = split_and_scale_data(X_full, y_full, train_index,
+                                                                                  test_index, numerical_features)
 
             # OvA i OvO
 
@@ -58,18 +59,18 @@ def run_experiment(csv_path, n_splits=5):
 
             ovo_result, ova_result = ovo_ova.predict_and_calculate_results(X_test_scaled, y_test)
 
-            #print("Trening OvA...")
+            # print("Trening OvA...")
             for metric_name, value in ova_result.items():
                 results['OvA'][metric_name].append(value)
-             #   print(f"OvA  {metric_name}: {value}")
+            #   print(f"OvA  {metric_name}: {value}")
 
-            #print("Trening OvO...")
+            # print("Trening OvO...")
             for metric_name, value in ovo_result.items():
                 results['OvO'][metric_name].append(value)
             #    print(f"OvO {metric_name}: {value}")
 
             # Nested Dichotomies
-            #print("Trening Nested Dichotomies...")
+            # print("Trening Nested Dichotomies...")
             y_train_labels = label_encoder.inverse_transform(y_train)
 
             hierarchy = create_music_genre_hierarchy()
@@ -85,6 +86,20 @@ def run_experiment(csv_path, n_splits=5):
                     y_test=y_test).items():
                 results['NDs'][metric_name].append(value)
             #    print(f"NDs {metric_name}: {value}")
+            genres = ['rock', 'jazz', 'blues', 'pop', 'funk', 'country', 'kids', 'opera', 'electronic', 'heavy-metal',
+                      'classical']
+
+            random_hierarchy = create_random_nd_hierarchy(genres)
+
+            y_pred_r_nds = [predict_with_hierarchy(nd_classifiers, x, random_hierarchy) for x in X_test_scaled.values]
+            y_pred_r_nds_encoded = label_encoder.transform(y_pred_r_nds)
+
+            for metric_name, value in evaluate_classifier(
+                    classifier=DummyClassifierWrapper(y_pred_r_nds_encoded),
+                    X_test=X_test_scaled,
+                    y_test=y_test).items():
+                results['RandomNDs'][metric_name].append(value)
+
         all_results[clf_name] = results
 
         print("\n\n--- Średnie Wyniki po Walidacji Krzyżowej ---")
@@ -94,11 +109,7 @@ def run_experiment(csv_path, n_splits=5):
             for metric_name, values_list in metrics_dict.items():
                 print(f"  Średni {metric_name}: {np.mean(values_list):.4f} (+/- {np.std(values_list):.4f})")
 
-
     return all_results, label_encoder, y_full
-
-
-
 
 
 if __name__ == '__main__':
@@ -109,22 +120,21 @@ if __name__ == '__main__':
     plot_accuracy_distributions(results)
     perform_analysis(results)
 
+# results heeereeeeeeee: {'OvA': defaultdict(<class 'list'>, {'accuracy': [0.4683374784771379, 0.47082456475990053], 'precision': [0.4616323370459598, 0.4564586636891404], 'recall': [0.4683374784771379, 0.47082456475990053], 'f1_score': [0.44927343804366604, 0.4518389528965411]}), 'OvO': defaultdict(<class 'list'>, {'accuracy': [0.4685287928065812, 0.47656399464319876], 'precision': [0.4641554140182488, 0.467388156167237], 'recall': [0.4685287928065812, 0.47656399464319876], 'f1_score': [0.45619187488865026, 0.4643816685755678]}), 'NDs': defaultdict(<class 'list'>, {'accuracy': [0.4222307250813086, 0.42605701167017407], 'precision': [0.4311548694395872, 0.43159836872424673], 'recall': [0.4222307250813086, 0.42605701167017407], 'f1_score': [0.4130311307463174, 0.41393278954647705]})}
 
-#results heeereeeeeeee: {'OvA': defaultdict(<class 'list'>, {'accuracy': [0.4683374784771379, 0.47082456475990053], 'precision': [0.4616323370459598, 0.4564586636891404], 'recall': [0.4683374784771379, 0.47082456475990053], 'f1_score': [0.44927343804366604, 0.4518389528965411]}), 'OvO': defaultdict(<class 'list'>, {'accuracy': [0.4685287928065812, 0.47656399464319876], 'precision': [0.4641554140182488, 0.467388156167237], 'recall': [0.4685287928065812, 0.47656399464319876], 'f1_score': [0.45619187488865026, 0.4643816685755678]}), 'NDs': defaultdict(<class 'list'>, {'accuracy': [0.4222307250813086, 0.42605701167017407], 'precision': [0.4311548694395872, 0.43159836872424673], 'recall': [0.4222307250813086, 0.42605701167017407], 'f1_score': [0.4130311307463174, 0.41393278954647705]})}
+# print("\nLabel Encoder Classes (Gatunki):")
+# for i, genre_name in enumerate(label_encoder.classes_):
+#     print(f"{i}: {genre_name}")
 
-    # print("\nLabel Encoder Classes (Gatunki):")
-    # for i, genre_name in enumerate(label_encoder.classes_):
-    #     print(f"{i}: {genre_name}")
-
-    # matplotlib.use('TkAgg')
-    #
-    # df = pd.read_csv(csv_file_path)
-    # correlation = df.corr(numeric_only=True)
-    # plt.figure(figsize=(10, 8))
-    # sns.heatmap(correlation, annot=True, cmap='coolwarm')
-    # plt.title("Korelacja między cechami a gatunkiem")
-    # plt.show()
-    #
-    # pd.Series(y_full).value_counts().plot(kind='bar')
-    # plt.title('Rozkład klas')
-    # plt.show()
+# matplotlib.use('TkAgg')
+#
+# df = pd.read_csv(csv_file_path)
+# correlation = df.corr(numeric_only=True)
+# plt.figure(figsize=(10, 8))
+# sns.heatmap(correlation, annot=True, cmap='coolwarm')
+# plt.title("Korelacja między cechami a gatunkiem")
+# plt.show()
+#
+# pd.Series(y_full).value_counts().plot(kind='bar')
+# plt.title('Rozkład klas')
+# plt.show()

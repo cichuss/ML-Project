@@ -40,7 +40,6 @@ else:
     print(duplicates.head(100))
 
 
-
 def load_and_preprocess_data(csv_path):
     df = pd.read_csv(csv_path)
     features = ['explicit', 'danceability', 'energy', 'key', 'loudness', 'mode',
@@ -86,6 +85,5 @@ def split_and_scale_data(X, y, train_index, test_index, numerical_features, n_co
         X_test_scaled = pd.DataFrame(X_test_pca, columns=pca_columns, index=X_test.index)
 
     return X_train_scaled, X_test_scaled, y_train, y_test
-
 
 

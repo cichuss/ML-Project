@@ -1,10 +1,8 @@
 from itertools import combinations
 
-import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
-from scipy import stats
 import seaborn as sns
+from matplotlib import pyplot as plt
 from scipy.stats import friedmanchisquare, wilcoxon
 
 
@@ -40,9 +38,10 @@ def perform_analysis(results):
             ova = clf_results['OvA'][metric]
             ovo = clf_results['OvO'][metric]
             nds = clf_results['NDs'][metric]
+            random_nds = clf_results['RandomNDs'][metric]
 
             # Step 1: Friedman Test
-            stat, p_value = friedmanchisquare(ova, ovo, nds)
+            stat, p_value = friedmanchisquare(ova, ovo, nds, random_nds)
             print(f"\nMetric: {metric}")
             print(f"Friedman test p-value: {p_value:.4f}")
 
@@ -50,7 +49,7 @@ def perform_analysis(results):
                 print("→ Significant differences found. Performing post-hoc analysis:")
 
                 # Step 2: Wilcoxon Signed-Rank Test with Bonferroni correction
-                pairs = [('OvA', ova), ('OvO', ovo), ('NDs', nds)]
+                pairs = [('OvA', ova), ('OvO', ovo), ('NDs', nds), ('RandomNDs', random_nds)]
                 for (name1, data1), (name2, data2) in combinations(pairs, 2):
                     stat, p = wilcoxon(data1, data2)
                     corrected_p = p * 3  # Bonferroni correction for 3 comparisons
