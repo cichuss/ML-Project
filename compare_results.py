@@ -13,7 +13,7 @@ def plot_accuracy_distributions(all_results, filename="accuracy_distributions.pn
             acc_values = metrics.get('accuracy', [])
             for val in acc_values:
                 data.append({
-                    'Classifier': clf_label,
+                    'Classifier': clf_name,
                     'Method': method,
                     'Accuracy': val
                 })

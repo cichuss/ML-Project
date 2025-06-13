@@ -119,8 +119,8 @@ def run_experiment(csv_path, n_splits=10):
 
 
 def create_random_nd_hierarchy(classes):
-
     random.seed(1234)
+
     def build_hierarchy(classes_subset):
         if len(classes_subset) == 1:
             return None  # liść — nie dzielimy dalej

@@ -38,7 +38,8 @@ class DummyClassifierWrapper(BaseEstimator):
         return self._y_pred
 
 
-def save_confusion_matrices_for_classifier(clf_name, predictions_by_method, label_encoder, save_dir='confusion_matrices'):
+def save_confusion_matrices_for_classifier(clf_name, predictions_by_method, label_encoder,
+                                           save_dir='confusion_matrices'):
     os.makedirs(save_dir, exist_ok=True)
     y_true = predictions_by_method['truths']
     labels = label_encoder.classes_
@@ -58,6 +59,7 @@ def save_confusion_matrices_for_classifier(clf_name, predictions_by_method, labe
         plt.savefig(filename)
         plt.close()
 
+
 def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
     X_full, y_full, numerical_features, label_encoder = load_and_preprocess_data(csv_path)
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
@@ -73,8 +75,9 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
     for n_components in pca_components_list:
         print(f"\n\n===== Eksperyment dla PCA n_components={n_components} =====\n")
         for base_clf, clf_name in zip(classifiers, clf_names):
-            results = {'OvA': defaultdict(list), 'OvO': defaultdict(list), 'NDs': defaultdict(list),'RandomNDs': defaultdict(list)}
-            predictions_by_method = {'OvA': [], 'OvO': [], 'NDs': [],'RandomNDs':[], 'truths': []}
+            results = {'OvA': defaultdict(list), 'OvO': defaultdict(list), 'NDs': defaultdict(list),
+                       'RandomNDs': defaultdict(list)}
+            predictions_by_method = {'OvA': [], 'OvO': [], 'NDs': [], 'RandomNDs': [], 'truths': []}
 
             for fold_num, (train_index, test_index) in enumerate(skf.split(X_full, y_full), start=1):
                 print(f"--- Fałda Walidacji Krzyżowej: {fold_num}/{n_splits} ---")
@@ -110,20 +113,23 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
                 y_pred_nds_encoded = label_encoder.transform(y_pred_nds)
 
                 for metric_name, value in evaluate_classifier(
-                    classifier=DummyClassifierWrapper(y_pred_nds_encoded),
-                    X_test=X_test_scaled,
-                    y_test=y_test
+                        classifier=DummyClassifierWrapper(y_pred_nds_encoded),
+                        X_test=X_test_scaled,
+                        y_test=y_test
                 ).items():
                     results['NDs'][metric_name].append(value)
 
-
-                #Random NDS
-                genres = ['rock', 'jazz', 'blues', 'pop', 'funk', 'country', 'kids', 'opera', 'electronic', 'heavy-metal',
-                      'classical']
+                # Random NDS
+                genres = ['rock', 'jazz', 'blues', 'pop', 'funk', 'country', 'kids', 'opera', 'electronic',
+                          'heavy-metal',
+                          'classical']
 
                 random_hierarchy = create_random_nd_hierarchy(genres)
-
-                y_pred_r_nds = [predict_with_hierarchy(nd_classifiers, x, random_hierarchy) for x in X_test_scaled.values]
+                r_nd_classifiers = train_nested_dichotomies_classifier(
+                    X_train_scaled.values, y_train_labels, random_hierarchy, base_clf
+                )
+                y_pred_r_nds = [predict_with_hierarchy(r_nd_classifiers, x, random_hierarchy) for x in
+                                X_test_scaled.values]
                 y_pred_r_nds_encoded = label_encoder.transform(y_pred_r_nds)
 
                 for metric_name, value in evaluate_classifier(
@@ -136,7 +142,6 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
                 predictions_by_method['RandomNDs'].extend(y_pred_r_nds_encoded)
                 predictions_by_method['truths'].extend(y_test)
 
-
             all_results[(clf_name, n_components)] = results
 
             print(f"\n\n--- Średnie Wyniki po Walidacji Krzyżowej dla {clf_name} z PCA={n_components} ---")
@@ -145,7 +150,8 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
                 for metric_name, values_list in metrics_dict.items():
                     print(f"  Średni {metric_name}: {np.mean(values_list):.4f} (+/- {np.std(values_list):.4f})")
 
-            save_confusion_matrices_for_classifier(f"{clf_name}_PCA_{n_components}", predictions_by_method, label_encoder)
+            save_confusion_matrices_for_classifier(f"{clf_name}_PCA_{n_components}", predictions_by_method,
+                                                   label_encoder)
 
     return all_results, label_encoder, y_full
 
@@ -153,7 +159,7 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
 if __name__ == '__main__':
     csv_file_path = 'dataset_after_preprocessing.csv'
     results, label_encoder, y_full = run_experiment(csv_file_path, n_splits=2)
-    #print("results:", results)
+    # print("results:", results)
 
     plot_accuracy_distributions(results)
     perform_analysis(results)
