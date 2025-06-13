@@ -153,25 +153,6 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
 if __name__ == '__main__':
     csv_file_path = 'dataset_after_preprocessing.csv'
     results, label_encoder, y_full = run_experiment(csv_file_path, n_splits=2)
-    # print("results:", results)
 
     plot_accuracy_distributions(results)
     perform_analysis(results)
-
-    # Optional visualizations (uncomment if needed)
-    # print("\nLabel Encoder Classes (Gatunki):")
-    # for i, genre_name in enumerate(label_encoder.classes_):
-    #     print(f"{i}: {genre_name}")
-
-    # matplotlib.use('TkAgg')
-    #
-    # df = pd.read_csv(csv_file_path)
-    # correlation = df.corr(numeric_only=True)
-    # plt.figure(figsize=(10, 8))
-    # sns.heatmap(correlation, annot=True, cmap='coolwarm')
-    # plt.title("Korelacja między cechami a gatunkiem")
-    # plt.show()
-    #
-    # pd.Series(y_full).value_counts().plot(kind='bar')
-    # plt.title('Rozkład klas')
-    # plt.show()

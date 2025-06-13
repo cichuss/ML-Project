@@ -27,7 +27,7 @@ def plot_accuracy_distributions(all_results, output_dir="accuracy_distributions"
         print("No data to plot.")
         return
 
-    for pca_val in sorted(df['PCA Components'].dropna().unique()):
+    for pca_val in sorted(df['PCA Components'].unique(), key=lambda x: (x is not None, x)):
         subset = df[df['PCA Components'] == pca_val]
 
         plt.figure(figsize=(12, 10))
