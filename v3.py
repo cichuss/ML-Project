@@ -62,9 +62,6 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
     X_full, y_full, numerical_features, label_encoder = load_and_preprocess_data(csv_path)
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 
-    results = {'OvA': defaultdict(list), 'OvO': defaultdict(list), 'NDs': defaultdict(list),
-               'RandomNDs': defaultdict(list)}
-
     classifiers = [
         RandomForestClassifier(n_estimators=100, random_state=42),
         SVC(kernel='rbf', probability=True, random_state=42),
@@ -73,12 +70,11 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
     clf_names = ["Random Forest", "SVC", "Logistic Regression"]
     all_results = {}
 
-
     for n_components in pca_components_list:
         print(f"\n\n===== Eksperyment dla PCA n_components={n_components} =====\n")
         for base_clf, clf_name in zip(classifiers, clf_names):
-            results = {'OvA': defaultdict(list), 'OvO': defaultdict(list), 'NDs': defaultdict(list)}
-            predictions_by_method = {'OvA': [], 'OvO': [], 'NDs': [], 'truths': []}
+            results = {'OvA': defaultdict(list), 'OvO': defaultdict(list), 'NDs': defaultdict(list),'RandomNDs': defaultdict(list)}
+            predictions_by_method = {'OvA': [], 'OvO': [], 'NDs': [],'RandomNDs':[], 'truths': []}
 
             for fold_num, (train_index, test_index) in enumerate(skf.split(X_full, y_full), start=1):
                 print(f"--- Fałda Walidacji Krzyżowej: {fold_num}/{n_splits} ---")
@@ -120,11 +116,8 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
                 ).items():
                     results['NDs'][metric_name].append(value)
 
-                predictions_by_method['NDs'].extend(y_pred_nds_encoded)
-                predictions_by_method['truths'].extend(y_test)
 
-                results['NDs'][metric_name].append(value)
-            #    print(f"NDs {metric_name}: {value}")
+                #Random NDS
                 genres = ['rock', 'jazz', 'blues', 'pop', 'funk', 'country', 'kids', 'opera', 'electronic', 'heavy-metal',
                       'classical']
 
@@ -139,6 +132,9 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
                         y_test=y_test).items():
                     results['RandomNDs'][metric_name].append(value)
 
+                predictions_by_method['NDs'].extend(y_pred_nds_encoded)
+                predictions_by_method['RandomNDs'].extend(y_pred_r_nds_encoded)
+                predictions_by_method['truths'].extend(y_test)
 
 
             all_results[(clf_name, n_components)] = results
@@ -156,7 +152,7 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
 
 if __name__ == '__main__':
     csv_file_path = 'dataset_after_preprocessing.csv'
-    results, label_encoder, y_full = run_experiment(csv_file_path, n_splits=10)
+    results, label_encoder, y_full = run_experiment(csv_file_path, n_splits=2)
     #print("results:", results)
 
     plot_accuracy_distributions(results)
