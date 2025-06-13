@@ -42,7 +42,7 @@ def save_confusion_matrices_for_classifier(clf_name, predictions_by_method, labe
     y_true = predictions_by_method['truths']
     labels = label_encoder.classes_
 
-    for method in ['OvA', 'OvO', 'NDs']:
+    for method in ['OvA', 'OvO', 'NDs', 'RandomNDs']:
         y_pred = predictions_by_method[method]
         cm = confusion_matrix(y_true, y_pred)
 

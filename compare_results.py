@@ -6,14 +6,18 @@ from matplotlib import pyplot as plt
 from scipy.stats import friedmanchisquare, wilcoxon
 
 
-def plot_accuracy_distributions(all_results, filename="accuracy_distributions.png"):
+def plot_accuracy_distributions(all_results, output_dir="accuracy_distributions"):
+    import os
+    os.makedirs(output_dir, exist_ok=True)
+
     data = []
-    for clf_name, methods in all_results.items():
+    for (clf_name, pca_components), methods in all_results.items():
         for method, metrics in methods.items():
             acc_values = metrics.get('accuracy', [])
             for val in acc_values:
                 data.append({
                     'Classifier': clf_name,
+                    'PCA Components': pca_components,
                     'Method': method,
                     'Accuracy': val
                 })
@@ -23,13 +27,19 @@ def plot_accuracy_distributions(all_results, filename="accuracy_distributions.pn
         print("No data to plot.")
         return
 
-    plt.figure(figsize=(12, 10))
-    sns.boxplot(x='Classifier', y='Accuracy', hue='Method', data=df, palette="YlOrRd")
-    plt.title('Rozkład dokładności klasyfikatorów dla różnych metod i wariantów PCA')
-    plt.xticks(rotation=45, ha='right')
-    plt.tight_layout()
-    plt.savefig(filename, dpi=300)
-    plt.close()
+    for pca_val in sorted(df['PCA Components'].dropna().unique()):
+        subset = df[df['PCA Components'] == pca_val]
+
+        plt.figure(figsize=(12, 10))
+        sns.boxplot(x='Classifier', y='Accuracy', hue='Method', data=subset, palette="YlOrRd")
+        plt.title('Rozkład dokładności klasyfikatorów dla różnych metod i wariantów PCA')
+        plt.xticks(rotation=45, ha='right')
+        plt.tight_layout()
+
+        pca_label = "none" if pca_val is None else pca_val
+        filename = os.path.join(output_dir, f"accuracy_distributions_pca_{pca_label}.png")
+        plt.savefig(filename, dpi=300)
+        plt.close()
 
 
 def perform_analysis(results):
