@@ -27,17 +27,20 @@ def plot_accuracy_distributions(all_results, output_dir="accuracy_distributions"
         print("No data to plot.")
         return
 
-    for pca_val in sorted(df['PCA Components'].unique(), key=lambda x: (x is not None, x)):
-        subset = df[df['PCA Components'] == pca_val]
+    for clf in sorted(df['Classifier'].unique()):
+        subset = df[df['Classifier'] == clf]
+
+        if subset.empty:
+            print(f"No data for Classifier={clf}")
+            continue
 
         plt.figure(figsize=(12, 10))
-        sns.boxplot(x='Classifier', y='Accuracy', hue='Method', data=subset, palette="YlOrRd")
-        plt.title('Rozkład dokładności klasyfikatorów dla różnych metod i wariantów PCA')
+        sns.boxplot(x='PCA Components', y='Accuracy', hue='Method', data=subset, palette="YlOrRd")
+        plt.title(f'Rozkład dokładności dla klasyfikatora: {clf}')
         plt.xticks(rotation=45, ha='right')
         plt.tight_layout()
 
-        pca_label = "none" if pca_val is None else pca_val
-        filename = os.path.join(output_dir, f"accuracy_distributions_pca_{pca_label}.png")
+        filename = os.path.join(output_dir, f"accuracy_distributions_classifier_{clf.lower().replace(' ', '_')}.png")
         plt.savefig(filename, dpi=300)
         plt.close()
 
@@ -52,13 +55,13 @@ def perform_analysis(results):
             random_nds = clf_results['RandomNDs'][metric]
 
             # Step 1: Friedman Test
-            stat, p_value = friedmanchisquare(ova, ovo, nds, random_nds)
             print(f"\nMetric: {metric}")
             print("OvA:", ova)
             print("OvO:", ovo)
             print("NDs:", nds)
+            print("RandomNDs:", random_nds)
 
-            stat, p_value = friedmanchisquare(ova, ovo, nds)
+            stat, p_value = friedmanchisquare(ova, ovo, nds, random_nds)
             print(f"Friedman test p-value: {p_value:.4f}")
 
             if p_value < 0.05:

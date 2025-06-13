@@ -15,11 +15,11 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.svm import SVC
 
 from compare_results import plot_accuracy_distributions, perform_analysis
-from music_genre_hierarchy import create_music_genre_hierarchy
-from nds import train_nested_dichotomies_classifier, predict_with_hierarchy
-from ova_ovo import evaluate_classifier, OvOOvaClassifiers
+from strategies.NDs.music_genre_hierarchy import create_music_genre_hierarchy
+from strategies.NDs.nds import train_nested_dichotomies_classifier, predict_with_hierarchy
+from strategies.ova_ovo import evaluate_classifier, OvOOvaClassifiers
 from preprocessing import load_and_preprocess_data, split_and_scale_data
-from random_NDs import create_random_nd_hierarchy
+from strategies.NDs.random_NDs import create_random_nd_hierarchy
 
 warnings.filterwarnings('ignore', category=ConvergenceWarning)
 warnings.filterwarnings('ignore', category=UserWarning, message="Precision is ill-defined")
