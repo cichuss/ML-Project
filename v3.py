@@ -5,7 +5,6 @@ from collections import defaultdict
 
 import matplotlib
 import numpy as np
-import pandas as pd
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.exceptions import ConvergenceWarning
@@ -16,10 +15,12 @@ from sklearn.svm import SVC
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from compare_results import plot_accuracy_distributions, perform_analysis
 from music_genre_hierarchy import create_music_genre_hierarchy
 from nds import train_nested_dichotomies_classifier, predict_with_hierarchy
-from preprocessing import load_and_preprocess_data, split_and_scale_data
 from ova_ovo import evaluate_classifier, OvOOvaClassifiers
+from preprocessing import load_and_preprocess_data, split_and_scale_data
+from random_NDs import create_random_nd_hierarchy
 from compare_results import plot_accuracy_distributions, perform_analysis
 
 warnings.filterwarnings('ignore', category=ConvergenceWarning)
@@ -61,6 +62,9 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
     X_full, y_full, numerical_features, label_encoder = load_and_preprocess_data(csv_path)
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 
+    results = {'OvA': defaultdict(list), 'OvO': defaultdict(list), 'NDs': defaultdict(list),
+               'RandomNDs': defaultdict(list)}
+
     classifiers = [
         RandomForestClassifier(n_estimators=100, random_state=42),
         SVC(kernel='rbf', probability=True, random_state=42),
@@ -68,6 +72,7 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
     ]
     clf_names = ["Random Forest", "SVC", "Logistic Regression"]
     all_results = {}
+
 
     for n_components in pca_components_list:
         print(f"\n\n===== Eksperyment dla PCA n_components={n_components} =====\n")
@@ -118,6 +123,24 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
                 predictions_by_method['NDs'].extend(y_pred_nds_encoded)
                 predictions_by_method['truths'].extend(y_test)
 
+                results['NDs'][metric_name].append(value)
+            #    print(f"NDs {metric_name}: {value}")
+                genres = ['rock', 'jazz', 'blues', 'pop', 'funk', 'country', 'kids', 'opera', 'electronic', 'heavy-metal',
+                      'classical']
+
+                random_hierarchy = create_random_nd_hierarchy(genres)
+
+                y_pred_r_nds = [predict_with_hierarchy(nd_classifiers, x, random_hierarchy) for x in X_test_scaled.values]
+                y_pred_r_nds_encoded = label_encoder.transform(y_pred_r_nds)
+
+                for metric_name, value in evaluate_classifier(
+                        classifier=DummyClassifierWrapper(y_pred_r_nds_encoded),
+                        X_test=X_test_scaled,
+                        y_test=y_test).items():
+                    results['RandomNDs'][metric_name].append(value)
+
+
+
             all_results[(clf_name, n_components)] = results
 
             print(f"\n\n--- Średnie Wyniki po Walidacji Krzyżowej dla {clf_name} z PCA={n_components} ---")
@@ -143,3 +166,16 @@ if __name__ == '__main__':
     # print("\nLabel Encoder Classes (Gatunki):")
     # for i, genre_name in enumerate(label_encoder.classes_):
     #     print(f"{i}: {genre_name}")
+
+    # matplotlib.use('TkAgg')
+    #
+    # df = pd.read_csv(csv_file_path)
+    # correlation = df.corr(numeric_only=True)
+    # plt.figure(figsize=(10, 8))
+    # sns.heatmap(correlation, annot=True, cmap='coolwarm')
+    # plt.title("Korelacja między cechami a gatunkiem")
+    # plt.show()
+    #
+    # pd.Series(y_full).value_counts().plot(kind='bar')
+    # plt.title('Rozkład klas')
+    # plt.show()

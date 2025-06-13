@@ -3,13 +3,11 @@ import warnings
 from collections import defaultdict
 
 import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.base import clone, BaseEstimator
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.exceptions import ConvergenceWarning
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
@@ -121,6 +119,8 @@ def run_experiment(csv_path, n_splits=10):
 
 
 def create_random_nd_hierarchy(classes):
+
+    random.seed(1234)
     def build_hierarchy(classes_subset):
         if len(classes_subset) == 1:
             return None  # liść — nie dzielimy dalej

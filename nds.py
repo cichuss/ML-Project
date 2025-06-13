@@ -2,13 +2,9 @@ import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
 
-from music_genre_hierarchy import *
-from sklearn.base import clone, BaseEstimator
+from sklearn.base import clone
 
 matplotlib.use('TkAgg')
-
-
-
 
 
 def train_nested_dichotomies_classifier(X, y, hierarchy, base_clf):
@@ -36,7 +32,6 @@ def train_nested_dichotomies_classifier(X, y, hierarchy, base_clf):
 
     recurse('root', np.arange(len(y)))
     return classifiers
-
 
 
 def predict_with_hierarchy(classifiers, x, hierarchy, current_node='root'):

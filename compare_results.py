@@ -1,18 +1,14 @@
 from itertools import combinations
 
-import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
-from scipy import stats
 import seaborn as sns
+from matplotlib import pyplot as plt
 from scipy.stats import friedmanchisquare, wilcoxon
 
 
 def plot_accuracy_distributions(all_results, filename="accuracy_distributions.png"):
     data = []
-    for (clf_name, pca_comp), methods in all_results.items():
-        clf_label = f"{clf_name} (PCA={pca_comp})"
-
+    for clf_name, methods in all_results.items():
         for method, metrics in methods.items():
             acc_values = metrics.get('accuracy', [])
             for val in acc_values:
@@ -43,7 +39,10 @@ def perform_analysis(results):
             ova = clf_results['OvA'][metric]
             ovo = clf_results['OvO'][metric]
             nds = clf_results['NDs'][metric]
+            random_nds = clf_results['RandomNDs'][metric]
 
+            # Step 1: Friedman Test
+            stat, p_value = friedmanchisquare(ova, ovo, nds, random_nds)
             print(f"\nMetric: {metric}")
             print("OvA:", ova)
             print("OvO:", ovo)
@@ -54,7 +53,9 @@ def perform_analysis(results):
 
             if p_value < 0.05:
                 print("→ Significant differences found. Performing post-hoc analysis:")
-                pairs = [('OvA', ova), ('OvO', ovo), ('NDs', nds)]
+
+                # Step 2: Wilcoxon Signed-Rank Test with Bonferroni correction
+                pairs = [('OvA', ova), ('OvO', ovo), ('NDs', nds), ('RandomNDs', random_nds)]
                 for (name1, data1), (name2, data2) in combinations(pairs, 2):
                     stat, p = wilcoxon(data1, data2)
                     corrected_p = p * 3
