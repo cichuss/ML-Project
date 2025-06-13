@@ -1,10 +1,11 @@
 import os
-import random
 import warnings
 from collections import defaultdict
 
 import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.exceptions import ConvergenceWarning
@@ -12,8 +13,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedKFold
 from sklearn.svm import SVC
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 from compare_results import plot_accuracy_distributions, perform_analysis
 from music_genre_hierarchy import create_music_genre_hierarchy
@@ -21,7 +20,6 @@ from nds import train_nested_dichotomies_classifier, predict_with_hierarchy
 from ova_ovo import evaluate_classifier, OvOOvaClassifiers
 from preprocessing import load_and_preprocess_data, split_and_scale_data
 from random_NDs import create_random_nd_hierarchy
-from compare_results import plot_accuracy_distributions, perform_analysis
 
 warnings.filterwarnings('ignore', category=ConvergenceWarning)
 warnings.filterwarnings('ignore', category=UserWarning, message="Precision is ill-defined")
@@ -120,11 +118,7 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
                     results['NDs'][metric_name].append(value)
 
                 # Random NDS
-                genres = ['rock', 'jazz', 'blues', 'pop', 'funk', 'country', 'kids', 'opera', 'electronic',
-                          'heavy-metal',
-                          'classical']
-
-                random_hierarchy = create_random_nd_hierarchy(genres)
+                random_hierarchy = create_random_nd_hierarchy()
                 r_nd_classifiers = train_nested_dichotomies_classifier(
                     X_train_scaled.values, y_train_labels, random_hierarchy, base_clf
                 )
