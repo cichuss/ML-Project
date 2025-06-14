@@ -1,0 +1,117 @@
+Wyniki Friedman test i post-hoc
+
+Random forest accuracy:
+Friedman test p-value: 0.000022257545964
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=1.669921875000000
+ OvA vs NDs: p=0.005859375000000 (significant)
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.005859375000000 (significant)
+ OvO vs RandomNDs: p=0.005859375000000 (significant)
+ NDs vs RandomNDs: p=2.085937500000000 
+Random forest precision:
+Friedman test p-value: 0.000049874246814
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=1.875000000000000
+ OvA vs NDs: p=0.011718750000000 (significant)
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.017578125000000 (significant)
+ OvO vs RandomNDs: p=0.005859375000000 (significant)
+ NDs vs RandomNDs: p=0.11132812500000
+Random forest recall:
+Friedman test p-value: 0.000022257545964
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=1.669921875000000
+ OvA vs NDs: p=0.005859375000000 (significant)
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.005859375000000 (significant)
+ OvO vs RandomNDs: p=0.005859375000000 (significant)
+ NDs vs RandomNDs: p=2.085937500000000 
+random forest f1_score:
+Friedman test p-value: 0.000022257545964
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=2.085937500000000
+ OvA vs NDs: p=0.005859375000000 (significant)
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.005859375000000 (significant)
+ OvO vs RandomNDs: p=0.005859375000000 (significant)
+ NDs vs RandomNDs: p=2.308593750000000 
+
+svc accuracy:
+Friedman test p-value: 0.000083675742183
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=1.875000000000000
+ OvA vs NDs: p=0.005859375000000 (significant)
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.017578125000000 (significant)
+ OvO vs RandomNDs: p=0.011718750000000 (significant)
+ NDs vs RandomNDs: p=0.0585937500000
+
+svc precision:
+Friedman test p-value: 0.000209378287375
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=0.251953125000000
+ OvA vs NDs: p=1.669921875000000
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.697265625000000
+ OvO vs RandomNDs: p=0.005859375000000 (significant)
+ NDs vs RandomNDs: p=0.005859375000000 (significa
+
+svc recall:
+Friedman test p-value: 0.000083675742183
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=1.875000000000000
+ OvA vs NDs: p=0.005859375000000 (significant)
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.017578125000000 (significant)
+ OvO vs RandomNDs: p=0.011718750000000 (significant)
+ NDs vs RandomNDs: p=0.058593750000000
+
+svc f1_score:
+Friedman test p-value: 0.000026463206092
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=0.251953125000000
+ OvA vs NDs: p=0.082031250000000
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.017578125000000 (significant)
+ OvO vs RandomNDs: p=0.005859375000000 (significant)
+ NDs vs RandomNDs: p=0.005859375000000 (significant)
+
+Logistic regression accuracy:
+Friedman test p-value: 0.000022257545964
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=0.580078125000000
+ OvA vs NDs: p=0.005859375000000 (significant)
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.005859375000000 (significant)
+ OvO vs RandomNDs: p=0.005859375000000 (significant)
+ NDs vs RandomNDs: p=2.765625000000000 
+Logistic regression precision:
+Friedman test p-value: 0.000001380057031
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=0.005859375000000 (significant)
+ OvA vs NDs: p=0.005859375000000 (significant)
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.005859375000000 (significant)
+ OvO vs RandomNDs: p=0.005859375000000 (significant)
+ NDs vs RandomNDs: p=0.005859375000000 (significant
+
+logistic regression recall:
+Friedman test p-value: 0.000022257545964
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=0.580078125000000
+ OvA vs NDs: p=0.005859375000000 (significant)
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.005859375000000 (significant)
+ OvO vs RandomNDs: p=0.005859375000000 (significant)
+ NDs vs RandomNDs: p=2.765625000000000
+
+Logistic regression f1_score:
+Friedman test p-value: 0.000001380057031
+→ Significant differences found. Performing post-hoc analysis:
+ OvA vs OvO: p=0.005859375000000 (significant)
+ OvA vs NDs: p=0.005859375000000 (significant)
+ OvA vs RandomNDs: p=0.005859375000000 (significant)
+ OvO vs NDs: p=0.005859375000000 (significant)
+ OvO vs RandomNDs: p=0.005859375000000 (significant)
+ NDs vs RandomNDs: p=0.005859375000000 (significant)
