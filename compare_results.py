@@ -62,7 +62,7 @@ def perform_analysis(results):
             print("RandomNDs:", random_nds)
 
             stat, p_value = friedmanchisquare(ova, ovo, nds, random_nds)
-            print(f"Friedman test p-value: {p_value:.4f}")
+            print(f"Friedman test p-value: {p_value:.15f}")
 
             if p_value < 0.05:
                 print("→ Significant differences found. Performing post-hoc analysis:")
@@ -72,6 +72,6 @@ def perform_analysis(results):
                 for (name1, data1), (name2, data2) in combinations(pairs, 2):
                     stat, p = wilcoxon(data1, data2)
                     corrected_p = p * 3
-                    print(f"  {name1} vs {name2}: p={corrected_p:.4f} {'(significant)' if corrected_p < 0.05 else ''}")
+                    print(f"  {name1} vs {name2}: p={corrected_p:.15f} {'(significant)' if corrected_p < 0.05 else ''}")
             else:
                 print("→ No significant differences found among strategies.")

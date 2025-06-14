@@ -37,7 +37,7 @@ class DummyClassifierWrapper(BaseEstimator):
 
 
 def save_confusion_matrices_for_classifier(clf_name, predictions_by_method, label_encoder,
-                                           save_dir='confusion_matrices'):
+                                           save_dir='confusion_matrixes'):
     os.makedirs(save_dir, exist_ok=True)
     y_true = predictions_by_method['truths']
     labels = label_encoder.classes_
@@ -152,7 +152,7 @@ def run_experiment(csv_path, n_splits=5, pca_components_list=[None, 3, 5, 10]):
 
 if __name__ == '__main__':
     csv_file_path = 'dataset_after_preprocessing.csv'
-    results, label_encoder, y_full = run_experiment(csv_file_path, n_splits=2)
+    results, label_encoder, y_full = run_experiment(csv_file_path, n_splits=10)
 
     plot_accuracy_distributions(results)
     perform_analysis(results)
